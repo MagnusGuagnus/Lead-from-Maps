@@ -38,7 +38,8 @@ export async function searchPlaces(lat, lng, radius, type) {
         address: details.formatted_address,
         phone: details.formatted_phone_number || null,
         rating: details.rating || null,
-        reviews: details.user_ratings_total || 0
+        reviews: details.user_ratings_total || 0,
+        place_id: place.place_id
       })
     }
   }
