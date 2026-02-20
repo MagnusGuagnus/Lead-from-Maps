@@ -17,6 +17,7 @@ import L from "leaflet"
 import axios from "axios"
 
 const leads = ref([])
+const loading = ref(false)
 
 onMounted(() => {
   const map = L.map("map").setView([45.5455, 11.5470], 13)
@@ -27,11 +28,9 @@ onMounted(() => {
 
   map.on("click", async (e) => {
     //mando dati
-    await fetch("http://localhost:3000/search", {
+    const response = await fetch("http://localhost:3000/search", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         lat: e.latlng.lat,
         lng: e.latlng.lng,
@@ -40,14 +39,11 @@ onMounted(() => {
       })
     })
 
-    const response = await axios.post("http://localhost:3000/search", {
-      lat: e.latlng.lat,
-      lng: e.latlng.lng,
-      radius: 2000,
-      type: "restaurant"
-    })
+    const data = await response.json()
 
-    leads.value = response.data
+    console.log("LEADS DAL BACKEND:", data)
+
+    leads.value = data
   })
 })
 </script>

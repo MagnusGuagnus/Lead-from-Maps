@@ -1,27 +1,19 @@
-import express from "express"
-import cors from "cors"
+//prima di tutto importo i dotenv
 import dotenv from "dotenv"
-
 dotenv.config()
 
-const PORT = process.env.PORT || 3000
-const FRONTEND_URL = process.env.FRONTEND_URL
-const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY
+import express from "express"
+import cors from "cors"
+import searchRoute from "./routes/search.js"
+
 const app = express()
 
 app.use(cors())
 app.use(express.json())
 
 //ricevo dati
-app.post("/search", (req, res) => {
-  console.log("Dati ricevuti:", req.body)
+app.use("/search", searchRoute)
 
-  res.json({
-    message: "Ricevuto",
-    data: req.body
-  })
-})
-
-app.listen(PORT, () => {
-  console.log(`Server attivo su http://localhost:${PORT}`)
+app.listen(process.env.PORT, () => {
+  console.log(`Server attivo su http://localhost:${process.env.PORT}`)
 })
