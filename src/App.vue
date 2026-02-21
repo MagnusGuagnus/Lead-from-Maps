@@ -22,7 +22,7 @@
     📥 Esporta
   </button>
   <button v-if="currLeads.length > 0" @click="saveLeads">
-    📥 Salva Leads
+    📥 Salva Leads e History
   </button>
   <button v-if="currLeads.length > 0" @click="clearLeads">
     🗑️ Clear Leads History
@@ -41,6 +41,7 @@ const lastSearch = ref(null)
 const radius = ref(2000)
 
 onMounted(() => {
+  loadHistory()
   const map = L.map("map").setView([45.5455, 11.5470], 13)
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "&copy; OpenStreetMap"
@@ -82,6 +83,17 @@ function clearLeads() {
   localStorage.setItem("savedLeads", JSON.stringify([]))
   localStorage.setItem("searchHistory", JSON.stringify([]))
   savedLeads.value = []
+
+  // Invia al server per cancellare anche il file (array vuoto)
+  const searchHistory = []
+  fetch("http://localhost:3000/manageHistory", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ searchHistory })
+  })
+    .then(res => res.json())
+    .then(data => console.log("Cronologia cancellata lato server:", data))
+    .catch(err => console.error("Errore nella cancellazione lato server:", err))
 }
 
 function saveLeads(){
@@ -95,12 +107,51 @@ function saveLeads(){
   localStorage.setItem("savedLeads", JSON.stringify(combinedLeads))
   savedLeads.value = combinedLeads
 
-  // Aggiorna la cronologia delle ricerche aggiungendo l'ultima ricerca
-  const searchHistory = JSON.parse(localStorage.getItem("searchHistory")) || []
+  // Se esiste un'ultima ricerca in memoria, aggiungila a searchHistory e invia al server
   if (lastSearch.value) {
+    const searchHistory = JSON.parse(localStorage.getItem("searchHistory")) || []
     searchHistory.push(lastSearch.value)
     localStorage.setItem("searchHistory", JSON.stringify(searchHistory))
+
+    fetch("http://localhost:3000/manageHistory", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ searchHistory })
+    })
+      .then(res => res.json())
+      .then(data => console.log("Cronologia salvata lato server:", data))
+      .catch(err => console.error("Errore nel salvataggio lato server:", err))
+
+    lastSearch.value = null
   }
+}
+
+function loadHistory() {
+  fetch("http://localhost:3000/manageHistory", {
+    method: "GET",
+    headers: { "Content-Type": "application/json" }
+  })
+    .then(res => res.json())
+    .then(data => {
+      console.log("Cronologia caricata lato server:", data)
+      // Salva la cronologia ricevuta dal server in localStorage
+      if (data && data.searchHistory) {
+        localStorage.setItem("searchHistory", JSON.stringify(data.searchHistory))
+      }
+    })
+    .catch(err => console.error("Errore nel caricamento lato server:", err))
+}
+function saveHistory() {
+  // Legge `searchHistory` da localStorage e lo invia al server
+  const searchHistory = JSON.parse(localStorage.getItem("searchHistory")) || []
+  fetch("http://localhost:3000/manageHistory", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ searchHistory })
+  })
+    .then(res => res.json())
+    .then(data => console.log("Cronologia salvata lato server:", data))
+    .catch(err => console.error("Errore nel salvataggio lato server:", err))
 }
 
 function exportCSV() {

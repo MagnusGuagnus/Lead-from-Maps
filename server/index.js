@@ -5,6 +5,7 @@ dotenv.config()
 import express from "express"
 import cors from "cors"
 import searchRoute from "./routes/search.js"
+import manageHistoryRoute from "./routes/manageHistory.js"
 
 const app = express()
 
@@ -13,6 +14,7 @@ app.use(express.json())
 
 //ricevo dati
 app.use("/search", searchRoute)
+app.use("/manageHistory", manageHistoryRoute)
 
 app.listen(process.env.PORT, () => {
   console.log(`Server attivo su http://localhost:${process.env.PORT}`)
